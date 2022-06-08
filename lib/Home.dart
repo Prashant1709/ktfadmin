@@ -2,13 +2,14 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:hexcolor/hexcolor.dart';
 import 'package:ktfadmin/scanner.dart';
-
+import 'package:location/location.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -50,10 +51,15 @@ class _HomeState extends State<Home> {
     Future.delayed(const Duration(seconds: 0)).then((e) async {
       eventd = await fetchDat();
     });
+    getloc();
   }
+  String code="";
+  String discount="";
+  String type="";
+  String desc="";
   late List<Map<String, dynamic>> eventd;
   Future<List<Map<String, dynamic>>> fetchDat() async {
-    List<Map<String, dynamic>> _events = [];
+    List<Map<String, dynamic>> events = [];
 
     final response = await http.get(
       Uri.parse('https://ktf-backend.herokuapp.com/data/events'),
@@ -62,10 +68,8 @@ class _HomeState extends State<Home> {
     if (response.statusCode == 200) {
       // If the server did return a 200 OK response,
       // then parse the JSON.
-      print(response.statusCode);
-      print(response.body);
       for (var i in jsonDecode(response.body)) {
-        _events.add({
+        events.add({
           "name": Eve.fromJson(i).name,
           "date": Eve.fromJson(i).date,
           "desc": Eve.fromJson(i).desct,
@@ -74,13 +78,77 @@ class _HomeState extends State<Home> {
           "eid": Eve.fromJson(i).eid,
         });
       }
-      return _events;
+      return events;
     } else {
       // If the server did not return a 200 OK response,
       // then throw an exception.
-      print(response.statusCode);
-      print(response.body);
       throw Exception('Failed to load data json');
+    }
+  }
+  Future addcoup(String cd,String dis,String type,String desc)async{
+    final String id =
+    await FirebaseAuth.instance.currentUser!.getIdToken(false);
+    final http.Response response = await http.post(
+      Uri.parse('https://ktf-backend.herokuapp.com/admin/add-coupons'),
+      headers: <String, String>{
+        "Authorization": "Bearer $id",
+        "content-type": "application/json"
+      },
+      body: jsonEncode(<String,dynamic>{
+        "code": cd,
+        "discount": int.parse(dis.toString()),
+        "type": type,
+        "description": desc
+      }),
+    );
+    if (response.statusCode == 200) {
+      Fluttertoast.showToast(msg: response.body.substring(12,response.body.length-2),toastLength: Toast
+          .LENGTH_LONG,
+          gravity:
+          ToastGravity.SNACKBAR,
+          fontSize: 17,
+          backgroundColor: Colors.black,
+          textColor: Colors.white);
+      throw Exception("Added successfully");
+    } else {
+      // If the server did not return a "200 OK response",
+      // then throw an exception.
+      throw Exception('Failed to add coupon.');
+    }
+  }
+  Future<void> getloc() async {
+    Location location = new Location();
+
+    bool serviceEnabled;
+    PermissionStatus permissionGranted;
+    LocationData locationData;
+    serviceEnabled = await location.serviceEnabled();
+    if (!serviceEnabled) {
+      serviceEnabled = await location.requestService();
+      if (!serviceEnabled) {
+        return;
+      }
+    }
+    permissionGranted = await location.hasPermission();
+    if (permissionGranted == PermissionStatus.denied) {
+      permissionGranted = await location.requestPermission();
+      if (permissionGranted != PermissionStatus.granted) {
+        return;
+      }
+    }
+    //location.enableBackgroundMode(enable: true);
+    locationData = await location.getLocation();
+    //print(locationData.latitude);
+    launchURL(locationData.latitude.toString(), locationData.longitude.toString());
+  }
+  launchURL(String homeLat,String homeLng) async {
+    final String googleMapslocationUrl = "https://www.google.com/maps/search/?api=1&query=$homeLat,$homeLng";
+    print(googleMapslocationUrl);
+    final String encodedURl = Uri.encodeFull(googleMapslocationUrl);
+    if (await canLaunch(encodedURl)) {
+      await launch(encodedURl);
+    } else {
+      throw 'Could not launch $encodedURl';
     }
   }
   Future<bool> _onWillPop() async {
@@ -124,7 +192,7 @@ class _HomeState extends State<Home> {
                 child: Text("Events"),
               ),
               Tab(
-                child: Text("Locate"),
+                child: Text("Coupon"),
               ),
               Tab(
                 child: Text("My Counter"),
@@ -143,7 +211,7 @@ class _HomeState extends State<Home> {
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
         floatingActionButton: FloatingActionButton(onPressed: (){
-
+          getloc();
         },
         backgroundColor: Colors.grey,child: const Icon(
           Icons.location_on,
@@ -266,8 +334,106 @@ class _HomeState extends State<Home> {
                     }),
               ),
             ),
-            SingleChildScrollView(),
-            SingleChildScrollView(),
+            SingleChildScrollView(
+              child: Column(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Padding(padding: const EdgeInsets.all(10.0),child:
+                  Text("Add new coupon",style: GoogleFonts.sora(color: Colors.black,fontSize: 23),),),
+                Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                        border: Border.all(color: Colors.black),
+                        borderRadius: BorderRadius.circular(5)),
+                    height: MediaQuery.of(context).size.height * 0.06,
+                    width: MediaQuery.of(context).size.width * 0.7,
+                    padding:const EdgeInsets.only(left: 4),
+                    child: TextFormField(
+                      style: const TextStyle(fontSize: 18, color: Colors.black),
+                      cursorColor: Colors.black,
+                      keyboardType: TextInputType.name,
+                      decoration: const InputDecoration(
+                          icon: Icon(Icons.code,color: Colors.black,),
+                          border: InputBorder.none,
+                          hintText: "Coupon code",
+                          hintStyle: TextStyle(color: Colors.grey)),
+                      onChanged: (value)=>code=value,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                        border: Border.all(color: Colors.black),
+                        borderRadius: BorderRadius.circular(5)),
+                    height: MediaQuery.of(context).size.height * 0.06,
+                    width: MediaQuery.of(context).size.width * 0.7,
+                    padding:const EdgeInsets.only(left: 4),
+                    child: TextFormField(
+                      style: const TextStyle(fontSize: 18, color: Colors.black),
+                      cursorColor: Colors.black,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                          icon: Icon(Icons.percent,color: Colors.black,),
+                          border: InputBorder.none,
+                          hintText: "Discount",
+                          hintStyle: TextStyle(color: Colors.grey)),
+                      onChanged: (value)=>discount=value,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                        border: Border.all(color: Colors.black),
+                        borderRadius: BorderRadius.circular(5)),
+                    height: MediaQuery.of(context).size.height * 0.06,
+                    width: MediaQuery.of(context).size.width * 0.7,
+                    padding:const EdgeInsets.only(left: 4),
+                    child: TextFormField(
+                      style: const TextStyle(fontSize: 18, color: Colors.black),
+                      cursorColor: Colors.black,
+                      keyboardType: TextInputType.name,
+                      decoration: const InputDecoration(
+                          icon: Icon(Icons.merge_type,color: Colors.black,),
+                          border: InputBorder.none,
+                          hintText: "type",
+                          hintStyle: TextStyle(color: Colors.grey)),
+                      onChanged: (value)=>type=value,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                        border: Border.all(color: Colors.black),
+                        borderRadius: BorderRadius.circular(5)),
+                    height: MediaQuery.of(context).size.height * 0.06,
+                    width: MediaQuery.of(context).size.width * 0.7,
+                    padding:const EdgeInsets.only(left: 4),
+                    child: TextFormField(
+                      style: const TextStyle(fontSize: 18, color: Colors.black),
+                      cursorColor: Colors.black,
+                      keyboardType: TextInputType.name,
+                      decoration: const InputDecoration(
+                          icon: Icon(Icons.description,color: Colors.black,),
+                          border: InputBorder.none,
+                          hintText: "Description",
+                          hintStyle: TextStyle(color: Colors.grey)),
+                      onChanged: (value)=>desc=value,
+                    ),
+                  ),
+                ),
+                MaterialButton(onPressed: (){
+                  addcoup(code, discount, type, desc);
+                },color: Colors.black,child: Text("Add",style: GoogleFonts.sora(color: Colors.white),),),
+              ],
+              ),
+            ),
+            const SingleChildScrollView(),
           ],
         )),
       ),

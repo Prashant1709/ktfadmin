@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:ktfadmin/detail.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 
 class Scanner extends StatefulWidget {
@@ -32,7 +32,6 @@ class _ScannerState extends State<Scanner> {
     controller!.resumeCamera();
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -45,58 +44,26 @@ class _ScannerState extends State<Scanner> {
               fit: BoxFit.contain,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: <Widget>[
-                  if (result != null)
-                    Text(
-                        'Barcode Type: ${describeEnum(result!.format)}   Data: ${result!.code}')
-                  else
-                    Text('Scan',style:GoogleFonts.sora(color: Colors.black,fontSize: 16) ,),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[
+                children: [
+                    Column(crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
                       Container(
-                        margin: const EdgeInsets.all(8),
-                        child: ElevatedButton(
-                            onPressed: () async {
-                              await controller?.toggleFlash();
-                              setState((){});
-                            },
-                            child: FutureBuilder(
-                              future: controller?.getFlashStatus(),
-                              builder: (context, snapshot) {
-                                return Text('Flash: ${snapshot.data}');
-                              },
-                            )),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[
-                      Container(
-                        margin: const EdgeInsets.all(8),
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            await controller?.pauseCamera();
-                          },
-                          child: const Text('pause',
-                              style: TextStyle(fontSize: 20)),
-                        ),
+                          margin: const EdgeInsets.all(8),
+                          child: IconButton(onPressed: ()async {
+                            await controller?.toggleFlash();
+                          }, icon:const Icon(Icons.flash_on))
                       ),
                       Container(
                         margin: const EdgeInsets.all(8),
-                        child: ElevatedButton(
+                        child: MaterialButton(color: Colors.black,
                           onPressed: () async {
                             await controller?.resumeCamera();
                           },
-                          child: const Text('resume',
-                              style: TextStyle(fontSize: 20)),
+                          child: const Text('Tap to scan',
+                              style: TextStyle(fontSize: 13,color: Colors.white)),
                         ),
                       )
-                    ],
-                  ),
+                    ],),
                 ],
               ),
             ),
@@ -132,6 +99,8 @@ class _ScannerState extends State<Scanner> {
       setState(() {
         result = scanData;
       });
+      controller.pauseCamera();
+      Navigator.push(context,MaterialPageRoute(builder: (BuildContext bs)=>Detail(eid: widget.eid, data: result!.code.toString())));
     });
   }
 
