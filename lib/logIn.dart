@@ -5,7 +5,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:glass_kit/glass_kit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:async';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ktfadmin/Home.dart';
 class LogIn extends StatefulWidget {
   const LogIn({Key? key}) : super(key: key);
@@ -15,6 +15,8 @@ class LogIn extends StatefulWidget {
 }
 
 class _LogInState extends State<LogIn> {
+  final _auth = FirebaseAuth.instance;
+  final firestoreInstance = FirebaseFirestore.instance;
   String email="";
   String pass="";
   bool _passwordVisible = false;
@@ -45,7 +47,26 @@ class _LogInState extends State<LogIn> {
       },
     );
   }
+  var now=DateTime.now();
+/*void checkroute(){
+  firestoreInstance.collection('Users').snapshots().listen((event) {
+    for (var i in event.docs) {
+      if (i.id != _auth.currentUser?.uid){
+        firestoreInstance.collection('Users').doc('${_auth.currentUser?.uid}').set(
+            {
+              'created':now,
+              'counter':0,
+              'lat':0,
+              'long':0,
+            }).whenComplete(() => Navigator.push(context, MaterialPageRoute(builder: (BuildContext bs)=>const Home())));
+      }
+      else{
+        Navigator.push(context, MaterialPageRoute(builder: (BuildContext bs)=>const Home()));
+      }
+    }
+  });
 
+}*/
   Future<bool> _onWillPop() async {
     return (await showDialog(
       barrierDismissible: false,
@@ -175,7 +196,9 @@ class _LogInState extends State<LogIn> {
                                 password: pass
                             ).then((value) => {
                               showLoaderDialog(context),
-                            }).whenComplete(() => Navigator.pushReplacement(context,MaterialPageRoute(builder: (BuildContext bs)=>const Home())));
+                            }).whenComplete(() => {
+                              Navigator.push(context, MaterialPageRoute(builder: (BuildContext bs)=>const Home()))
+                            });
                           } on FirebaseAuthException catch (e) {
                             showDialog(
                                 context: context,

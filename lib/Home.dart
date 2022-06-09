@@ -1,4 +1,5 @@
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -44,6 +45,8 @@ class Eve {
   }
 }
 class _HomeState extends State<Home> {
+  final _auth = FirebaseAuth.instance;
+  final firestoreInstance = FirebaseFirestore.instance;
   @override
   void initState() {
     // this is called when the class is initialized or called for the first time
@@ -116,7 +119,7 @@ class _HomeState extends State<Home> {
     }
   }
   Future<void> getloc() async {
-    Location location = new Location();
+    Location location = Location();
 
     bool serviceEnabled;
     PermissionStatus permissionGranted;
@@ -138,7 +141,7 @@ class _HomeState extends State<Home> {
     //location.enableBackgroundMode(enable: true);
     locationData = await location.getLocation();
     //print(locationData.latitude);
-    launchURL(locationData.latitude.toString(), locationData.longitude.toString());
+    //launchURL(locationData.latitude.toString(), locationData.longitude.toString());
   }
   launchURL(String homeLat,String homeLng) async {
     final String googleMapslocationUrl = "https://www.google.com/maps/search/?api=1&query=$homeLat,$homeLng";
