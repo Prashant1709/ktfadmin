@@ -21,12 +21,13 @@ class _DetailState extends State<Detail> {
     // this is called when the class is initialized or called for the first time
     super.initState();
     checkuser(widget.data);
+    checkin(widget.data);
   }
   Future checkuser(String uid)async{
     final String id =
     await FirebaseAuth.instance.currentUser!.getIdToken(false);
     final http.Response response = await http.post(
-      Uri.parse('https://ktf-backend.herokuapp.com/admin/check-in'),
+      Uri.parse('https://ktf-backend.herokuapp.com/admin/check'),
       headers: <String, String>{
         "Authorization": "Bearer $id",
         "content-type": "application/json"
@@ -50,8 +51,52 @@ class _DetailState extends State<Detail> {
     } else {
       // If the server did not return a "200 OK response",
       // then throw an exception.
+      Fluttertoast.showToast(msg: response.body.substring(12,response.body.length-2),
+          toastLength: Toast.LENGTH_LONG,
+          gravity:
+          ToastGravity.SNACKBAR,
+          fontSize: 17,
+          backgroundColor: Colors.black,
+          textColor: Colors.white);
+      throw Exception('Failed to check');
+    }
+  }
+  Future checkin(String uid)async{
+    final String id =
+    await FirebaseAuth.instance.currentUser!.getIdToken(false);
+    final http.Response response = await http.post(
+      Uri.parse('https://ktf-backend.herokuapp.com/admin/check-in'),
+      headers: <String, String>{
+        "Authorization": "Bearer $id",
+        "content-type": "application/json"
+      },
+      body: jsonEncode(<String,dynamic>{
+        "uid": uid,
+        "eventID": widget.eid,
+      }),
+    );
+    if (response.statusCode == 200) {
       print(response.statusCode);
       print(response.body);
+      Fluttertoast.showToast(msg: response.body.substring(12,response.body.length-2),toastLength: Toast
+          .LENGTH_LONG,
+          gravity:
+          ToastGravity.SNACKBAR,
+          fontSize: 17,
+          backgroundColor: Colors.black,
+          textColor: Colors.white);
+
+      throw Exception("Checked in successfully");
+    } else {
+      // If the server did not return a "200 OK response",
+      // then throw an exception.
+      Fluttertoast.showToast(msg: response.body.substring(12,response.body.length-2),
+          toastLength: Toast.LENGTH_LONG,
+          gravity:
+          ToastGravity.SNACKBAR,
+          fontSize: 17,
+          backgroundColor: Colors.black,
+          textColor: Colors.white);
       throw Exception('Failed to check');
     }
   }

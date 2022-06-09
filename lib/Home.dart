@@ -51,7 +51,6 @@ class _HomeState extends State<Home> {
     Future.delayed(const Duration(seconds: 0)).then((e) async {
       eventd = await fetchDat();
     });
-    getloc();
   }
   String code="";
   String discount="";
@@ -433,7 +432,13 @@ class _HomeState extends State<Home> {
               ],
               ),
             ),
-            const SingleChildScrollView(),
+            SingleChildScrollView(child: Column(mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Center(
+                  child: Text("Your counter is 0",style: GoogleFonts.sora(color: Colors.black,fontSize: 23),),
+                ),
+              ],
+            ),),
           ],
         )),
       ),
