@@ -21,7 +21,7 @@ class _DetailState extends State<Detail> {
     // this is called when the class is initialized or called for the first time
     super.initState();
     checkuser(widget.data);
-    checkin(widget.data);
+    //checkin(widget.data);
   }
   Future checkuser(String uid)async{
     final String id =
@@ -61,7 +61,7 @@ class _DetailState extends State<Detail> {
       throw Exception('Failed to check');
     }
   }
-  Future checkin(String uid)async{
+  Future checkin(int uid)async{
     final String id =
     await FirebaseAuth.instance.currentUser!.getIdToken(false);
     final http.Response response = await http.post(
@@ -88,6 +88,8 @@ class _DetailState extends State<Detail> {
 
       throw Exception("Checked in successfully");
     } else {
+      print(response.statusCode);
+      print(response.body);
       // If the server did not return a "200 OK response",
       // then throw an exception.
       Fluttertoast.showToast(msg: response.body.substring(12,response.body.length-2),
@@ -112,6 +114,9 @@ class _DetailState extends State<Detail> {
       body: Column(mainAxisAlignment: MainAxisAlignment.spaceEvenly,children: [
         Text("${widget.eid}",style: GoogleFonts.sora(fontSize: 16),),
         Text(widget.data,style: GoogleFonts.sora(fontSize: 16),),
+        MaterialButton(onPressed: (){
+          checkin(widget.eid);
+        },color: Colors.teal,child: Text("Check In",style: GoogleFonts.sora(color: Colors.white),),)
       ],),
     ));
   }

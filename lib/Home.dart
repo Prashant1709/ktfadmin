@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:ktfadmin/logIn.dart';
 import 'package:ktfadmin/scanner.dart';
 import 'package:location/location.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -141,7 +142,7 @@ class _HomeState extends State<Home> {
     //location.enableBackgroundMode(enable: true);
     locationData = await location.getLocation();
     //print(locationData.latitude);
-    //launchURL(locationData.latitude.toString(), locationData.longitude.toString());
+    launchURL(locationData.latitude.toString(), locationData.longitude.toString());
   }
   launchURL(String homeLat,String homeLng) async {
     final String googleMapslocationUrl = "https://www.google.com/maps/search/?api=1&query=$homeLat,$homeLng";
@@ -207,7 +208,7 @@ class _HomeState extends State<Home> {
           centerTitle: true,
           actions: [
             IconButton(onPressed: (){
-              FirebaseAuth.instance.signOut().whenComplete(() => Navigator.pop(context));
+              FirebaseAuth.instance.signOut().whenComplete(() => Navigator.push(context, MaterialPageRoute(builder: (BuildContext bs)=>const LogIn())));
             }, icon:const Icon(Icons.logout,color: Colors.white,))
           ],
         ),
