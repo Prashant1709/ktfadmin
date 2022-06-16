@@ -5,11 +5,16 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:ticket_widget/ticket_widget.dart';
 import 'package:google_fonts/google_fonts.dart';
 class Detail extends StatefulWidget {
-  final String data;
+  final String ename;
+  final String desc;
+  final String date;
   final int eid;
-  const Detail({Key? key, required this.eid,required this.data}) : super(key: key);
+  final int price;
+  final String data;
+  const Detail({Key ?key, required this.eid, required this.ename, required this.date, required this.desc,required this.price,required this.data}) : super(key: key);
 
   @override
   State<Detail> createState() => _DetailState();
@@ -61,7 +66,7 @@ class _DetailState extends State<Detail> {
       throw Exception('Failed to check');
     }
   }
-  Future checkin(int uid)async{
+  Future checkin()async{
     final String id =
     await FirebaseAuth.instance.currentUser!.getIdToken(false);
     final http.Response response = await http.post(
@@ -71,7 +76,7 @@ class _DetailState extends State<Detail> {
         "content-type": "application/json"
       },
       body: jsonEncode(<String,dynamic>{
-        "uid": uid,
+        "uid": widget.data,
         "eventID": widget.eid,
       }),
     );
@@ -112,11 +117,122 @@ class _DetailState extends State<Detail> {
         actions: [],
       ),
       body: Column(mainAxisAlignment: MainAxisAlignment.spaceEvenly,children: [
-        Text("${widget.eid}",style: GoogleFonts.sora(fontSize: 16),),
-        Text(widget.data,style: GoogleFonts.sora(fontSize: 16),),
-        MaterialButton(onPressed: (){
-          checkin(widget.eid);
-        },color: Colors.teal,child: Text("Check In",style: GoogleFonts.sora(color: Colors.white),),)
+        Center(
+          child: TicketWidget(
+            color:Colors.teal,
+            width: 350,
+            height: 500,
+            isCornerRounded: true,
+            padding: const EdgeInsets.all(20),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      width: 120.0,
+                      height: 25.0,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(30.0),
+                        border: Border.all(width: 1.0, color: Colors.white),
+                      ),
+                      child: Center(
+                        child: Text(
+                          'Digital Ticket',
+                          style: GoogleFonts.sora(color: Colors.white,fontSize: 14),
+                        ),
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Text(
+                            'KTF',
+                            style: GoogleFonts.sora(color: Colors.white,fontSize: 17,fontWeight: FontWeight.bold)
+                        ),
+                      ],
+                    )
+                  ],
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: 20.0),
+                  child: Text(
+                    widget.ename,
+                    style: GoogleFonts.sora(color:Colors.white,fontSize: 32 ),
+                  ),
+                ),
+                SizedBox(height: 20,),
+                Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Text("Event ID",style: GoogleFonts.sora(color: Colors.grey.shade300,fontSize: 18),),
+                        ),
+                        Text("${widget.eid}",style: GoogleFonts.sora(color: Colors.white,fontSize: 18),),
+                      ],
+                    ),
+                    SizedBox(width: 5,),
+                    Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Text("Price",style: GoogleFonts.sora(color: Colors.grey.shade300,fontSize: 18),),
+                        ),
+                        Text("₹ ${widget.price}",style: GoogleFonts.sora(color: Colors.white,fontSize: 18),),
+                      ],
+                    ),
+                    SizedBox(width: 7,),
+                  ],
+                ),
+                Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Text("Status",style: GoogleFonts.sora(color: Colors.grey.shade300,fontSize: 18),),
+                        ),
+                        Text("Paid",style: GoogleFonts.sora(color: Colors.white,fontSize: 18),),
+                      ],
+                    ),
+                    Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Text("Location",style: GoogleFonts.sora(color: Colors.grey.shade300,fontSize: 18),),
+                        ),
+                        Text("KSOM",style: GoogleFonts.sora(color: Colors.white,fontSize: 18),),
+                      ],
+                    ),
+                  ],
+                ),
+                Center(
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: Text("Date",style: GoogleFonts.sora(color: Colors.grey.shade300,fontSize: 18),),
+                      ),
+                      Text(widget.date,style: GoogleFonts.sora(color: Colors.white,fontSize: 18),),
+                    ],
+                  ),
+                ),
+                Divider(color: Colors.grey.shade300,thickness: 1,),
+                Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly,children: [
+                  MaterialButton(onPressed: (){
+                    checkin();
+                  },color: Colors.white,child: Row(
+                    children: [
+                      const Icon(Icons.check,color: Colors.teal,),
+                      Text("Check-In",style: GoogleFonts.sora(fontSize: 20,color: Colors.teal),),
+                    ],
+                  ),)
+                ],)
+              ],
+            ),
+          ),
+        ),
       ],),
     ));
   }

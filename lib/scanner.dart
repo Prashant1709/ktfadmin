@@ -10,7 +10,8 @@ class Scanner extends StatefulWidget {
   final String desc;
   final String date;
   final int eid;
-  const Scanner({Key ?key, required this.eid, required this.ename, required this.date, required this.desc}) : super(key: key);
+  final int price;
+  const Scanner({Key ?key, required this.eid, required this.ename, required this.date, required this.desc,required this.price}) : super(key: key);
 
   @override
   State<Scanner> createState() => _ScannerState();
@@ -100,7 +101,7 @@ class _ScannerState extends State<Scanner> {
         result = scanData;
       });
       controller.pauseCamera();
-      Navigator.push(context,MaterialPageRoute(builder: (BuildContext bs)=>Detail(eid: widget.eid, data: result!.code.toString())));
+      Navigator.push(context,MaterialPageRoute(builder: (BuildContext bs)=>Detail(eid: widget.eid, data: result!.code.toString(),desc: widget.desc,date: widget.date,ename: widget.ename,price: widget.price,)));
     });
   }
 

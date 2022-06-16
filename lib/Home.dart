@@ -11,6 +11,7 @@ import 'package:http/http.dart' as http;
 import 'package:ktfadmin/logIn.dart';
 import 'package:ktfadmin/scanner.dart';
 import 'package:location/location.dart';
+import 'package:ticket_widget/ticket_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class Home extends StatefulWidget {
@@ -293,6 +294,7 @@ class _HomeState extends State<Home> {
                                           ename: events[position]['name'],
                                           date: events[position]['date'],
                                           desc: events[position]['desc'],
+                                          price:events[position]['price'],
                                         ),
                                     ));
                                   },
@@ -437,9 +439,9 @@ class _HomeState extends State<Home> {
               ),
             ),
             SingleChildScrollView(child: Column(mainAxisAlignment: MainAxisAlignment.center,
-              children: [
+              children:  [
                 Center(
-                  child: Text("Your counter is 0",style: GoogleFonts.sora(color: Colors.black,fontSize: 23),),
+                  child:Text("Your Counter is 0",style: GoogleFonts.sora(fontSize: 28),),
                 ),
               ],
             ),),
