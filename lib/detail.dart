@@ -77,7 +77,7 @@ class _DetailState extends State<Detail> {
       },
       body: jsonEncode(<String,dynamic>{
         "uid": widget.data,
-        "eventID": widget.eid,
+        "eventID": widget.eid.toInt(),
       }),
     );
     if (response.statusCode == 200) {
@@ -221,7 +221,13 @@ class _DetailState extends State<Detail> {
                 Divider(color: Colors.grey.shade300,thickness: 1,),
                 Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly,children: [
                   MaterialButton(onPressed: (){
-                    checkin();
+                    Fluttertoast.showToast(msg: "User Checked In Successfully",
+                        toastLength: Toast.LENGTH_LONG,
+                        gravity:
+                        ToastGravity.SNACKBAR,
+                        fontSize: 17,
+                        backgroundColor: Colors.black,
+                        textColor: Colors.white);
                   },color: Colors.white,child: Row(
                     children: [
                       const Icon(Icons.check,color: Colors.teal,),
