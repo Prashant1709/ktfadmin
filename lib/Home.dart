@@ -11,7 +11,6 @@ import 'package:http/http.dart' as http;
 import 'package:ktfadmin/logIn.dart';
 import 'package:ktfadmin/scanner.dart';
 import 'package:location/location.dart';
-import 'package:ticket_widget/ticket_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class Home extends StatefulWidget {
@@ -47,7 +46,6 @@ class Eve {
   }
 }
 class _HomeState extends State<Home> {
-  final _auth = FirebaseAuth.instance;
   final firestoreInstance = FirebaseFirestore.instance;
   @override
   void initState() {
@@ -56,9 +54,10 @@ class _HomeState extends State<Home> {
     Future.delayed(const Duration(seconds: 0)).then((e) async {
       eventd = await fetchDat();
     });
+    getloc();
   }
   String code="";
-  String discount="";
+  double discount=0.8;
   String type="";
   String desc="";
   late List<Map<String, dynamic>> eventd;
@@ -89,7 +88,7 @@ class _HomeState extends State<Home> {
       throw Exception('Failed to load data json');
     }
   }
-  Future addcoup(String cd,String dis,String type,String desc)async{
+  Future addcoup(String cd,double dis,String type,String desc)async{
     final String id =
     await FirebaseAuth.instance.currentUser!.getIdToken(false);
     final http.Response response = await http.post(
@@ -100,7 +99,7 @@ class _HomeState extends State<Home> {
       },
       body: jsonEncode(<String,dynamic>{
         "code": cd,
-        "discount": int.parse(dis.toString()),
+        "discount": dis,
         "type": type,
         "description": desc
       }),
@@ -142,8 +141,14 @@ class _HomeState extends State<Home> {
     }
     //location.enableBackgroundMode(enable: true);
     locationData = await location.getLocation();
-    //print(locationData.latitude);
-    launchURL(locationData.latitude.toString(), locationData.longitude.toString());
+    double? lat=locationData.latitude;
+    double? lon=locationData.longitude;
+    double? speed=locationData.speed;
+    firestoreInstance.collection("Users").doc(FirebaseAuth.instance.currentUser!.uid).update({
+      "lat":lat,
+      "lon":lon,
+      "speed":speed,
+    });
   }
   launchURL(String homeLat,String homeLng) async {
     final String googleMapslocationUrl = "https://www.google.com/maps/search/?api=1&query=$homeLat,$homeLng";
@@ -366,50 +371,7 @@ class _HomeState extends State<Home> {
                     ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                        border: Border.all(color: Colors.black),
-                        borderRadius: BorderRadius.circular(5)),
-                    height: MediaQuery.of(context).size.height * 0.06,
-                    width: MediaQuery.of(context).size.width * 0.7,
-                    padding:const EdgeInsets.only(left: 4),
-                    child: TextFormField(
-                      style: const TextStyle(fontSize: 18, color: Colors.black),
-                      cursorColor: Colors.black,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                          icon: Icon(Icons.percent,color: Colors.black,),
-                          border: InputBorder.none,
-                          hintText: "Discount",
-                          hintStyle: TextStyle(color: Colors.grey)),
-                      onChanged: (value)=>discount=value,
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                        border: Border.all(color: Colors.black),
-                        borderRadius: BorderRadius.circular(5)),
-                    height: MediaQuery.of(context).size.height * 0.06,
-                    width: MediaQuery.of(context).size.width * 0.7,
-                    padding:const EdgeInsets.only(left: 4),
-                    child: TextFormField(
-                      style: const TextStyle(fontSize: 18, color: Colors.black),
-                      cursorColor: Colors.black,
-                      keyboardType: TextInputType.name,
-                      decoration: const InputDecoration(
-                          icon: Icon(Icons.merge_type,color: Colors.black,),
-                          border: InputBorder.none,
-                          hintText: "type",
-                          hintStyle: TextStyle(color: Colors.grey)),
-                      onChanged: (value)=>type=value,
-                    ),
-                  ),
-                ),
+
                 Padding(
                   padding: const EdgeInsets.all(10.0),
                   child: Container(
@@ -433,7 +395,7 @@ class _HomeState extends State<Home> {
                   ),
                 ),
                 MaterialButton(onPressed: (){
-                  addcoup(code, discount, type, desc);
+                  addcoup(code, 0.8, "Campus Ambassador", desc);
                 },color: Colors.black,child: Text("Add",style: GoogleFonts.sora(color: Colors.white),),),
               ],
               ),
