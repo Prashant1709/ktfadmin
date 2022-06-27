@@ -54,12 +54,15 @@ class _HomeState extends State<Home> {
     Future.delayed(const Duration(seconds: 0)).then((e) async {
       eventd = await fetchDat();
     });
+    getdat();
     getloc();
   }
   String code="";
   double discount=0.8;
   String type="";
+  int count=0;
   String desc="";
+  List<Map<String, dynamic>> user=[];
   late List<Map<String, dynamic>> eventd;
   Future<List<Map<String, dynamic>>> fetchDat() async {
     List<Map<String, dynamic>> events = [];
@@ -119,6 +122,21 @@ class _HomeState extends State<Home> {
       throw Exception('Failed to add coupon.');
     }
   }
+  Future<void> getdat() async {
+    firestoreInstance.collection('Users').snapshots().listen((event) {
+      for (var i in event.docs) {
+        if (i.id != FirebaseAuth.instance.currentUser?.uid) {
+          user.add({
+            "Name":i.get('Name'),
+            "lat":i.get('lat'),
+            "lon":i.get('lon'),
+            "speed":i.get('speed'),
+            "count":i.get('count')
+          });
+        }
+      }
+    });
+  }
   Future<void> getloc() async {
     Location location = Location();
 
@@ -152,7 +170,6 @@ class _HomeState extends State<Home> {
   }
   launchURL(String homeLat,String homeLng) async {
     final String googleMapslocationUrl = "https://www.google.com/maps/search/?api=1&query=$homeLat,$homeLng";
-    print(googleMapslocationUrl);
     final String encodedURl = Uri.encodeFull(googleMapslocationUrl);
     if (await canLaunch(encodedURl)) {
       await launch(encodedURl);
@@ -220,7 +237,24 @@ class _HomeState extends State<Home> {
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
         floatingActionButton: FloatingActionButton(onPressed: (){
-          getloc();
+          showModalBottomSheet(isScrollControlled: true,isDismissible: true,backgroundColor: Colors.black,context: context, builder: (BuildContext bs)=>SingleChildScrollView(child: StreamBuilder<QuerySnapshot>(
+            stream: firestoreInstance.collection("Users").snapshots(),
+            builder: (context, snapshot) {
+              return SizedBox(height: h(0.9),
+                child: ListView.builder(itemBuilder: (context,index)=>
+                ListTile(
+                  leading:const Icon(Icons.person,color: Colors.teal,),
+                  title: Text(user[index]['Name']),
+                  tileColor: Colors.white,
+                  subtitle: Text(user[index]['speed'].toString()),
+                  trailing: IconButton(onPressed: (){
+                    launchURL(user[index]['lat'].toString(), user[index]['lon'].toString());
+                  },icon:const Icon(Icons.location_on,color: Colors.teal,),),
+                )
+                ),
+              );
+            }
+          )));
         },
         backgroundColor: Colors.grey,child: const Icon(
           Icons.location_on,
@@ -402,8 +436,13 @@ class _HomeState extends State<Home> {
             ),
             SingleChildScrollView(child: Column(mainAxisAlignment: MainAxisAlignment.center,
               children:  [
-                Center(
-                  child:Text("Your Counter is 0",style: GoogleFonts.sora(fontSize: 28),),
+                StreamBuilder<QuerySnapshot>(
+                  stream: firestoreInstance.collection('Users').snapshots(),
+                  builder: (context, snapshot) {
+                    return Center(
+                      child:Text("Your Counter is  0",style: GoogleFonts.sora(fontSize: 28),),
+                    );
+                  }
                 ),
               ],
             ),),
